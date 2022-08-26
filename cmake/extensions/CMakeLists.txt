@@ -383,7 +383,7 @@ else()
         endif()
     else()
         if(APPLE)
-            if(USE_SYSTEM_LibFFI)
+            if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
                 add_python_extension(_ctypes
                     SOURCES ${ctypes_COMMON_SOURCES}
                             _ctypes/malloc_closure.c
@@ -402,6 +402,7 @@ else()
                         _ctypes/libffi_osx/x86/x86-darwin.S
                         _ctypes/libffi_osx/x86/x86-ffi_darwin.c
                         _ctypes/libffi_osx/x86/x86-ffi64.c
+                INCLUDEDIRS ${LibFFI_INCLUDE_DIR}
                 DEFINITIONS MACOSX
             )
             endif()

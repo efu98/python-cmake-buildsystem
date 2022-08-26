@@ -277,7 +277,6 @@ set(PYTHON_COMMON_SOURCES
     ${SRC_DIR}/Python/dtoa.c
     ${SRC_DIR}/Python/dup2.c
     ${SRC_DIR}/Python/dynamic_annotations.c
-    ${SRC_DIR}/Python/dynload_shlib.c
     ${SRC_DIR}/Python/errors.c
     ${SRC_DIR}/Python/fileutils.c
     ${SRC_DIR}/Python/formatter_unicode.c
