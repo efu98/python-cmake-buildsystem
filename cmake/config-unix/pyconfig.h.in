@@ -1580,6 +1580,12 @@
 /* The size of `size_t', as computed by sizeof. */
 #cmakedefine SIZEOF_SIZE_T @SIZEOF_SIZE_T@
 
+/* The normal alignment of `long', in bytes. */
+#cmakedefine ALIGNOF_LONG @ALIGNOF_LONG@
+
+/* The normal alignment of `size_t', in bytes. */
+#cmakedefine ALIGNOF_SIZE_T @ALIGNOF_SIZE_T@
+
 /* The size of `time_t', as computed by sizeof. */
 #cmakedefine SIZEOF_TIME_T @SIZEOF_TIME_T@
 

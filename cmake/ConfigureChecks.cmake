@@ -45,8 +45,9 @@ message(STATUS "EXPAT_LIBRARIES=${EXPAT_LIBRARIES}")
 message(STATUS "EXPAT_INCLUDE_DIRS=${EXPAT_INCLUDE_DIRS}")
 
 if(USE_SYSTEM_LibFFI)
-    find_path(LibFFI_INCLUDE_DIR ffi.h)
+    find_path(LibFFI_INCLUDE_DIR ffi/ffi.h)
     find_library(LibFFI_LIBRARY NAMES ffi libffi)
+    set(LibFFI_INCLUDE_DIR "${LibFFI_INCLUDE_DIR}/ffi")
     message(STATUS "LibFFI_INCLUDE_DIR=${LibFFI_INCLUDE_DIR}")
     message(STATUS "LibFFI_LIBRARY=${LibFFI_LIBRARY}")
 endif()
@@ -711,6 +712,64 @@ check_type_size("void *" SIZEOF_VOID_P)
 check_type_size(wchar_t SIZEOF_WCHAR_T)
 check_type_size(_Bool SIZEOF__BOOL)
 set(HAVE_C99_BOOL ${SIZEOF__BOOL})
+
+macro(ALIGNOF TYPE LANG NAME)
+  if(NOT ALIGNOF_${NAME})
+    #
+    # Try to compile and run a foo grogram. The alignment result will be stored
+    # in ALIGNOF_${CHECK_TYPE}
+    #
+
+    set(INCLUDE_HEADERS
+      "
+      #include <stddef.h>
+			#include <stdio.h>
+			#include <stdlib.h>
+      "
+    )
+
+    foreach(File ${CMAKE_REQUIRED_INCLUDES})
+      set(INCLUDE_HEADERS "${INCLUDE_HEADERS}\n#include <${File}>\n")
+    endforeach()
+
+    set(INCLUDE_HEADERS "${INCLUDE_HEADERS}\n#include <stdint.h>\n")
+
+    file(
+      WRITE
+      "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/c_get_${NAME}_alignment.${LANG}"
+      "${INCLUDE_HEADERS}
+			int main(){
+				char diff;
+				struct foo {char a; ${TYPE} b;};
+				struct foo *p = (struct foo *) malloc(sizeof(struct foo));
+				diff = ((char *)&p->b) - ((char *)&p->a);
+				return diff;
+			}"
+    )
+
+    try_run(
+      ALIGNOF_${NAME}
+      COMPILE_RESULT
+      "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+      "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/c_get_${NAME}_alignment.${LANG}"
+      COMPILE_OUTPUT_VARIABLE "ALIGNOF_${NAME}_COMPILE_VAR"
+    )
+
+    if(NOT COMPILE_RESULT)
+      message(
+        FATAL_ERROR
+          "Check alignment of ${TYPE} in ${LANG}: compilation failed: ${ALIGNOF_${NAME}_COMPILE_VAR}"
+      )
+    else()
+      message(
+        STATUS "Check alignment of ${TYPE} in ${LANG}: ${ALIGNOF_${NAME}}"
+      )
+    endif()
+  endif()
+endmacro()
+
+alignof(long c LONG)
+alignof(size_t c SIZE_T)
 
 # libffi specific: Check whether more than one size of the long double type is supported
 # TODO

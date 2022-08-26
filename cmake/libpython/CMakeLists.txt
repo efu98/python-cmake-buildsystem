@@ -68,13 +68,20 @@ elseif(WIN32)
 endif()
 
 set(PARSER_COMMON_SOURCES # Equivalent to POBJS in Makefile.pre
-    ${SRC_DIR}/Parser/acceler.c
-    ${SRC_DIR}/Parser/grammar1.c
-    ${SRC_DIR}/Parser/listnode.c
-    ${SRC_DIR}/Parser/node.c
+    #${SRC_DIR}/Parser/acceler.c
+    #${SRC_DIR}/Parser/grammar1.c
+    #${SRC_DIR}/Parser/listnode.c
+    #${SRC_DIR}/Parser/node.c
     ${SRC_DIR}/Parser/parser.c
 )
-if(PY_VERSION VERSION_GREATER_EQUAL "3.9")
+if(PY_VERSION VERSION_GREATER_EQUAL "3.10")
+    list(APPEND PARSER_COMMON_SOURCES
+        ${SRC_DIR}/Parser/pegen.c
+        #${SRC_DIR}/Parser/pegen/parse.c
+        ${SRC_DIR}/Parser/string_parser.c
+        ${SRC_DIR}/Parser/peg_api.c
+    )
+elseif(PY_VERSION VERSION_GREATER_EQUAL "3.9")
     list(APPEND PARSER_COMMON_SOURCES
         ${SRC_DIR}/Parser/pegen/pegen.c
         ${SRC_DIR}/Parser/pegen/parse.c
@@ -85,7 +92,7 @@ endif()
 if(PY_VERSION VERSION_GREATER_EQUAL "3.8")
     list(APPEND PARSER_COMMON_SOURCES
         ${SRC_DIR}/Parser/myreadline.c
-        ${SRC_DIR}/Parser/parsetok.c
+        #${SRC_DIR}/Parser/parsetok.c
         ${SRC_DIR}/Parser/token.c
         ${SRC_DIR}/Parser/tokenizer.c
     )
@@ -98,6 +105,7 @@ else()
         ${SRC_DIR}/Parser/pgen.c
     )
 endif()
+
 
 set(OBJECT2_SOURCES
     ${SRC_DIR}/Objects/bufferobject.c
@@ -133,9 +141,11 @@ endif()
 set(OBJECT_COMMON_SOURCES # Equivalent to OBJECT_OBJS in Makefile.pre
     ${OBJECT${PY_VERSION_MAJOR}_SOURCES}
     ${SRC_DIR}/Objects/abstract.c
+    ${SRC_DIR}/Objects/accu.c
     ${SRC_DIR}/Objects/boolobject.c
     ${SRC_DIR}/Objects/bytearrayobject.c
     ${SRC_DIR}/Objects/bytes_methods.c
+    ${SRC_DIR}/Objects/call.c
     ${SRC_DIR}/Objects/capsule.c
     ${SRC_DIR}/Objects/cellobject.c
     ${SRC_DIR}/Objects/classobject.c
@@ -149,15 +159,20 @@ set(OBJECT_COMMON_SOURCES # Equivalent to OBJECT_OBJS in Makefile.pre
     ${SRC_DIR}/Objects/floatobject.c
     ${SRC_DIR}/Objects/frameobject.c
     ${SRC_DIR}/Objects/funcobject.c
+    ${SRC_DIR}/Objects/genericaliasobject.c
     ${SRC_DIR}/Objects/genobject.c
+    ${SRC_DIR}/Objects/interpreteridobject.c
     ${SRC_DIR}/Objects/iterobject.c
     ${SRC_DIR}/Objects/listobject.c
     ${SRC_DIR}/Objects/longobject.c
     ${SRC_DIR}/Objects/memoryobject.c
     ${SRC_DIR}/Objects/methodobject.c
     ${SRC_DIR}/Objects/moduleobject.c
+    ${SRC_DIR}/Objects/namespaceobject.c
     ${SRC_DIR}/Objects/object.c
     ${SRC_DIR}/Objects/obmalloc.c
+    ${SRC_DIR}/Objects/odictobject.c
+    ${SRC_DIR}/Objects/picklebufobject.c
     ${SRC_DIR}/Objects/rangeobject.c
     ${SRC_DIR}/Objects/setobject.c
     ${SRC_DIR}/Objects/sliceobject.c
@@ -165,6 +180,7 @@ set(OBJECT_COMMON_SOURCES # Equivalent to OBJECT_OBJS in Makefile.pre
     ${SRC_DIR}/Objects/tupleobject.c
     ${SRC_DIR}/Objects/typeobject.c
     ${SRC_DIR}/Objects/unicodectype.c
+    ${SRC_DIR}/Objects/unionobject.c
     ${SRC_DIR}/Objects/unicodeobject.c
     ${SRC_DIR}/Objects/weakrefobject.c
 )
@@ -249,14 +265,23 @@ set(PYTHON_COMMON_SOURCES
     ${PYTHON${PY_VERSION_MAJOR}_COMMON_SOURCES}
     ${THREAD_SOURCES}
     ${SRC_DIR}/Python/asdl.c
+    ${SRC_DIR}/Python/ast_opt.c
+    ${SRC_DIR}/Python/ast_unparse.c
     ${SRC_DIR}/Python/ast.c
     ${SRC_DIR}/Python/bltinmodule.c
+    ${SRC_DIR}/Python/bootstrap_hash.c
     ${SRC_DIR}/Python/ceval.c
     ${SRC_DIR}/Python/codecs.c
     ${SRC_DIR}/Python/compile.c
+    ${SRC_DIR}/Python/context.c
     ${SRC_DIR}/Python/dtoa.c
+    ${SRC_DIR}/Python/dup2.c
+    ${SRC_DIR}/Python/dynamic_annotations.c
+    ${SRC_DIR}/Python/dynload_shlib.c
     ${SRC_DIR}/Python/errors.c
+    ${SRC_DIR}/Python/fileutils.c
     ${SRC_DIR}/Python/formatter_unicode.c
+    ${SRC_DIR}/Python/frozenmain.c
     ${SRC_DIR}/Python/future.c
     ${SRC_DIR}/Python/getargs.c
     ${SRC_DIR}/Python/getcompiler.c
@@ -264,26 +289,37 @@ set(PYTHON_COMMON_SOURCES
     ${SRC_DIR}/Python/getopt.c
     ${SRC_DIR}/Python/getplatform.c
     ${SRC_DIR}/Python/getversion.c
-    ${SRC_DIR}/Python/graminit.c
+    #${SRC_DIR}/Python/graminit.c
+    ${SRC_DIR}/Python/hamt.c
+    ${SRC_DIR}/Python/hashtable.c
     ${SRC_DIR}/Python/import.c
     ${SRC_DIR}/Python/importdl.c
     ${SRC_DIR}/Python/marshal.c
     ${SRC_DIR}/Python/modsupport.c
     ${SRC_DIR}/Python/mysnprintf.c
     ${SRC_DIR}/Python/mystrtoul.c
-    ${SRC_DIR}/Python/peephole.c
+    #${SRC_DIR}/Python/peephole.c
+    ${SRC_DIR}/Python/pathconfig.c
+    ${SRC_DIR}/Python/preconfig.c
     ${SRC_DIR}/Python/pyarena.c
     ${SRC_DIR}/Python/pyctype.c
     ${SRC_DIR}/Python/pyfpe.c
+    ${SRC_DIR}/Python/pyhash.c
+    ${SRC_DIR}/Python/pylifecycle.c
     ${SRC_DIR}/Python/pymath.c
     ${SRC_DIR}/Python/pystate.c
     ${SRC_DIR}/Python/pystrcmp.c
+    ${SRC_DIR}/Python/pystrhex.c
+    ${SRC_DIR}/Python/pystrtod.c
     ${SRC_DIR}/Python/Python-ast.c
     ${SRC_DIR}/Python/pythonrun.c
+    ${SRC_DIR}/Python/pytime.c
     ${SRC_DIR}/Python/structmember.c
+    ${SRC_DIR}/Python/suggestions.c
     ${SRC_DIR}/Python/symtable.c
     ${SRC_DIR}/Python/sysmodule.c
     ${SRC_DIR}/Python/traceback.c
+    ${SRC_DIR}/Python/thread.c
     ${SRC_DIR}/Python/_warnings.c
 )
 if(PY_VERSION VERSION_GREATER_EQUAL "3.7")

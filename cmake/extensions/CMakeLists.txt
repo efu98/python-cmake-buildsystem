@@ -72,7 +72,7 @@ add_python_extension(math ${WIN32_BUILTIN} REQUIRES HAVE_LIBM SOURCES _math.c ma
 add_python_extension(mmap ${WIN32_BUILTIN} SOURCES mmapmodule.c)
 add_python_extension(_multibytecodec ${WIN32_BUILTIN} SOURCES cjkcodecs/multibytecodec.c)
 add_python_extension(operator ${WIN32_BUILTIN} REQUIRES IS_PY2 SOURCES operator.c)
-add_python_extension(parser ${WIN32_BUILTIN} SOURCES parsermodule.c)
+#add_python_extension(parser ${WIN32_BUILTIN} SOURCES parser.c)
 add_python_extension(_random ${WIN32_BUILTIN} SOURCES _randommodule.c)
 add_python_extension(strop ${WIN32_BUILTIN} REQUIRES IS_PY2 SOURCES stropmodule.c)
 add_python_extension(_struct ${WIN32_BUILTIN} SOURCES _struct.c)
@@ -160,7 +160,7 @@ endif()
 
 # Python 3.9
 if(PY_VERSION VERSION_GREATER_EQUAL "3.9")
-    add_python_extension(_peg_parser ALWAYS_BUILTIN SOURCES _peg_parser.c)
+    #add_python_extension(_peg_parser ALWAYS_BUILTIN SOURCES _peg_parser.c)
 endif()
 
 # UNIX-only extensions
@@ -317,6 +317,8 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
   set(_libffi_system_dir "x86")
 elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "amd64")
   set(_libffi_system_dir "x86")
+elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+  set(_libffi_system_dir "arm64")
 elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm")
   set(_libffi_system_dir "arm")
 endif()
@@ -328,7 +330,6 @@ set(ctypes_COMMON_SOURCES
     _ctypes/stgdict.c
     _ctypes/cfield.c
 )
-
 if(
     (WIN32 AND PY_VERSION VERSION_GREATER_EQUAL "3.8")
     OR
@@ -347,89 +348,98 @@ if(
         INCLUDEDIRS ${LibFFI_INCLUDE_DIR}
         LIBRARIES ${LibFFI_LIBRARY}
     )
-else()
-# ctypes is different on Windows
-if(WIN32)
-    if(MINGW)
-      add_python_extension(_ctypes
-          SOURCES ${ctypes_COMMON_SOURCES}
-                  _ctypes/libffi_mingw/closures.c
-                  _ctypes/libffi_mingw/debug.c
-                  _ctypes/libffi_mingw/prep_cif.c
-                  _ctypes/libffi_mingw/raw_api.c
-                  _ctypes/libffi_mingw/${_libffi_system_dir}/ffi.c
-                  _ctypes/libffi_mingw/${_libffi_system_dir}/win32.S
-          INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi/src/${_libffi_system_dir}
-                      ${SRC_DIR}/Modules/_ctypes/libffi/include
-          DEFINITIONS X86_WIN32
-        )
-    else() # Visual Studio
-      if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-          enable_language(ASM_MASM)
-          set(_ctype_arch_impl win64.asm)
-      else()
-          set(_ctype_arch_impl win32.c)
-      endif()
-      add_python_extension(_ctypes
-          SOURCES ${ctypes_COMMON_SOURCES}
-                  _ctypes/malloc_closure.c
-                  _ctypes/libffi_msvc/prep_cif.c
-                  _ctypes/libffi_msvc/ffi.c
-                  _ctypes/libffi_msvc/${_ctype_arch_impl}
-          REQUIRES BUILD_LIBPYTHON_SHARED
-          INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi_msvc
-        )
-    endif()
-else()
-    if(APPLE)
+else()  
+    # ctypes is different on Windows
+    if(WIN32)
+        if(MINGW)
+        add_python_extension(_ctypes
+            SOURCES ${ctypes_COMMON_SOURCES}
+                    _ctypes/libffi_mingw/closures.c
+                    _ctypes/libffi_mingw/debug.c
+                    _ctypes/libffi_mingw/prep_cif.c
+                    _ctypes/libffi_mingw/raw_api.c
+                    _ctypes/libffi_mingw/${_libffi_system_dir}/ffi.c
+                    _ctypes/libffi_mingw/${_libffi_system_dir}/win32.S
+            INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi/src/${_libffi_system_dir}
+                        ${SRC_DIR}/Modules/_ctypes/libffi/include
+            DEFINITIONS X86_WIN32
+            )
+        else() # Visual Studio
+        if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+            enable_language(ASM_MASM)
+            set(_ctype_arch_impl win64.asm)
+        else()
+            set(_ctype_arch_impl win32.c)
+        endif()
         add_python_extension(_ctypes
             SOURCES ${ctypes_COMMON_SOURCES}
                     _ctypes/malloc_closure.c
-                    _ctypes/darwin/dlfcn_simple.c
-                    _ctypes/libffi_osx/ffi.c
-                    _ctypes/libffi_osx/x86/darwin64.S
-                    _ctypes/libffi_osx/x86/x86-darwin.S
-                    _ctypes/libffi_osx/x86/x86-ffi_darwin.c
-                    _ctypes/libffi_osx/x86/x86-ffi64.c
-            INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi_osx/include
-                        ${SRC_DIR}/Modules/_ctypes/darwin
-            DEFINITIONS MACOSX
-        )
-    else()
-        if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-          set(_libffi_system_extra_src
-                _ctypes/libffi/src/${_libffi_system_dir}/ffi64.c
-                _ctypes/libffi/src/${_libffi_system_dir}/unix64.S
-                )
-        elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-          set(_libffi_system_extra_src
-                _ctypes/libffi/src/${_libffi_system_dir}/win32.S
-                )
+                    _ctypes/libffi_msvc/prep_cif.c
+                    _ctypes/libffi_msvc/ffi.c
+                    _ctypes/libffi_msvc/${_ctype_arch_impl}
+            REQUIRES BUILD_LIBPYTHON_SHARED
+            INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi_msvc
+            )
         endif()
-        # To facilitate an eventual contribution of the configuration
-        # of fficonfig.h to the upstream project, corresponding tests
-        # in ConfigureChecks.cmake are labeled using this convention:
-        # * "libffi specific"
-        # * "libffi and cpython"
-        set(LIBFFI_VERSION "3.1")
-        configure_file(
-          ${PROJECT_SOURCE_DIR}/cmake/fficonfig.h.in
-          ${INCLUDE_BUILD_DIR}/fficonfig.h
-          )
-        add_python_extension(_ctypes
-            SOURCES ${ctypes_COMMON_SOURCES}
-                    _ctypes/libffi/src/closures.c
-                    _ctypes/libffi/src/prep_cif.c
-                    _ctypes/libffi/src/${_libffi_system_dir}/ffi.c
-                    _ctypes/libffi/src/${_libffi_system_dir}/sysv.S
-                    ${_libffi_system_extra_src}
-            INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi/src/${_libffi_system_dir}
-                        ${SRC_DIR}/Modules/_ctypes/libffi/include
-                        ${INCLUDE_BUILD_DIR}      # For fficonfig.h
-                        ${PROJECT_SOURCE_DIR}/cmake # For ffi.h
-        )
+    else()
+        if(APPLE)
+            if(USE_SYSTEM_LibFFI)
+                add_python_extension(_ctypes
+                    SOURCES ${ctypes_COMMON_SOURCES}
+                            _ctypes/malloc_closure.c
+                    INCLUDEDIRS ${LibFFI_INCLUDE_DIR}
+                    DEFINITIONS MACOSX 
+                                HAVE_FFI_PREP_CLOSURE_LOC
+                                USING_APPLE_OS_LIBFFI
+                )
+            else()
+            add_python_extension(_ctypes
+                SOURCES ${ctypes_COMMON_SOURCES}
+                        _ctypes/malloc_closure.c
+                        _ctypes/darwin/dlfcn_simple.c
+                        _ctypes/libffi_osx/ffi.c
+                        _ctypes/libffi_osx/x86/darwin64.S
+                        _ctypes/libffi_osx/x86/x86-darwin.S
+                        _ctypes/libffi_osx/x86/x86-ffi_darwin.c
+                        _ctypes/libffi_osx/x86/x86-ffi64.c
+                DEFINITIONS MACOSX
+            )
+            endif()
+        else()
+            if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+            set(_libffi_system_extra_src
+                    _ctypes/libffi/src/${_libffi_system_dir}/ffi64.c
+                    _ctypes/libffi/src/${_libffi_system_dir}/unix64.S
+                    )
+            elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
+            set(_libffi_system_extra_src
+                    _ctypes/libffi/src/${_libffi_system_dir}/win32.S
+                    )
+            endif()
+            # To facilitate an eventual contribution of the configuration
+            # of fficonfig.h to the upstream project, corresponding tests
+            # in ConfigureChecks.cmake are labeled using this convention:
+            # * "libffi specific"
+            # * "libffi and cpython"
+            set(LIBFFI_VERSION "3.1")
+            configure_file(
+            ${PROJECT_SOURCE_DIR}/cmake/fficonfig.h.in
+            ${INCLUDE_BUILD_DIR}/fficonfig.h
+            )
+            add_python_extension(_ctypes
+                SOURCES ${ctypes_COMMON_SOURCES}
+                        _ctypes/libffi/src/closures.c
+                        _ctypes/libffi/src/prep_cif.c
+                        _ctypes/libffi/src/${_libffi_system_dir}/ffi.c
+                        _ctypes/libffi/src/${_libffi_system_dir}/sysv.S
+                        ${_libffi_system_extra_src}
+                INCLUDEDIRS ${SRC_DIR}/Modules/_ctypes/libffi/src/${_libffi_system_dir}
+                            ${SRC_DIR}/Modules/_ctypes/libffi/include
+                            ${INCLUDE_BUILD_DIR}      # For fficonfig.h
+                            ${PROJECT_SOURCE_DIR}/cmake # For ffi.h
+            )
+        endif()
     endif()
-endif()
 endif()
 
 # Python3: _decimal

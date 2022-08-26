@@ -1,12 +1,24 @@
-cmake_minimum_required(VERSION 3.13.5)
+cmake_minimum_required(VERSION 3.16.3...3.19.7 FATAL_ERROR)
 
-set(PYTHON_VERSION "3.9.10" CACHE STRING "The version of Python to build.")
+set(PYTHON_VERSION "3.10.6" CACHE STRING "The version of Python to build.")
 
 string(REPLACE "." ";" VERSION_LIST ${PYTHON_VERSION})
 list(GET VERSION_LIST 0 PY_VERSION_MAJOR)
 list(GET VERSION_LIST 1 PY_VERSION_MINOR)
 list(GET VERSION_LIST 2 PY_VERSION_PATCH)
 set(PY_VERSION "${PY_VERSION_MAJOR}.${PY_VERSION_MINOR}.${PY_VERSION_PATCH}")
+
+set(_msg "Setting C++ standard")
+message(STATUS "${_msg}")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+message(STATUS "${_msg} - C++${CMAKE_CXX_STANDARD}")
+if(NOT CMAKE_CXX_STANDARD MATCHES "^(17|20)$")
+  message(FATAL_ERROR "CMAKE_CXX_STANDARD must be set to 17 or 20")
+endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_CONFIGURATION_TYPES Release CACHE STRING "Release configuration" FORCE)
@@ -253,6 +265,9 @@ set(_download_3.9.7_md5 "5f463f30b1fdcb545f156583630318b3")
 set(_download_3.9.8_md5 "83419bd73655813223c2cf2afb11f83c")
 set(_download_3.9.9_md5 "a2da2a456c078db131734ff62de10ed5")
 set(_download_3.9.10_md5 "1440acb71471e2394befdb30b1a958d1")
+#3.10.6
+set(_download_3.10.6_md5 "d76638ca8bf57e44ef0841d2cde557a0")
+
 
 set(_extracted_dir "Python-${PY_VERSION}")
 
