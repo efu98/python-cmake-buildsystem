@@ -388,7 +388,6 @@ else()
                     SOURCES ${ctypes_COMMON_SOURCES}
                             _ctypes/malloc_closure.c
                     INCLUDEDIRS ${LibFFI_INCLUDE_DIR}
-                                ${PROJECT_SOURCE_DIR}/cmake # For ffi.h
                     DEFINITIONS MACOSX 
                                 HAVE_FFI_PREP_CLOSURE_LOC
                                 USING_APPLE_OS_LIBFFI
@@ -404,7 +403,6 @@ else()
                         _ctypes/libffi_osx/x86/x86-ffi_darwin.c
                         _ctypes/libffi_osx/x86/x86-ffi64.c
                 INCLUDEDIRS ${LibFFI_INCLUDE_DIR}
-                            ${PROJECT_SOURCE_DIR}/cmake # For ffi.h
                 DEFINITIONS MACOSX
             )
             endif()
